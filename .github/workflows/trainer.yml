@@ -23,6 +23,9 @@ jobs:
         run: |
           mkdir -p new
           cbng-trainer build-database --input=edits.xml --output new/
+      - name: Compare databases
+        run: |
+          cbng-trainer compare-database --target new/ --output new/ || true
       - name: Prepare files
         id: prep
         run: |
@@ -35,4 +38,11 @@ jobs:
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
           artifacts: "new/*"
+          bodyFile: "new/comparator.md"
           tag: "${{ steps.prep.outputs.date }}"
+      - name: Update README
+        run: |
+          pip install requests
+          ./.github/scripts/update-readme.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
