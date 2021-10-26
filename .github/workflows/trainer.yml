@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'README.md'
 permissions:
   contents: write
 jobs:
@@ -44,5 +46,9 @@ jobs:
         run: |
           pip install requests
           ./.github/scripts/update-readme.py
+
+          git add README.md
+          git commit -m 'Update README'
+          git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
