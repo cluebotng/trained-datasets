@@ -47,6 +47,9 @@ jobs:
           pip install requests
           ./.github/scripts/update-readme.py
 
+          git config user.email "worker@github"
+          git config user.name "Github Actions"
+
           git add README.md
           git commit -m 'Update README'
           git push origin main
