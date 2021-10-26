@@ -23,9 +23,6 @@ jobs:
         run: |
           mkdir -p new
           cbng-trainer build-database --input=edits.xml --output new/
-      - name: Compare databases
-        run: |
-          cbng-trainer compare-database --target new/ --output new/ || true
       - name: Prepare files
         id: prep
         run: |
@@ -33,6 +30,9 @@ jobs:
           sudo chmod 644 new/*
           cp edits.xml new/ || true
           echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      - name: Compare databases
+        run: |
+          cbng-trainer compare-database --target new/ --output new/ || true
       - name: Crease a release
         uses: ncipollo/release-action@v1
         with:
