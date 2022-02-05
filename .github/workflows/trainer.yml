@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - ng
     paths-ignore:
       - 'README.md'
 permissions:
@@ -12,6 +13,29 @@ permissions:
 jobs:
   trainer:
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+       include:
+         - edit-set-name: all
+           edit-set-ids: []
+         - edit-set-name: reported
+           edit-set-ids: [1, 2]
+         - edit-set-name: original-c
+           edit-set-ids: [7]
+         - edit-set-name: original-d
+           edit-set-ids: [9]
+         - edit-set-name: original-testing-c
+           edit-set-ids: [13]
+         - edit-set-name: original-testing-d
+           edit-set-ids: [15]
+         - edit-set-name: original-testing-auto
+           edit-set-ids: [19]
+         - edit-set-name: original-testing-triplet
+           edit-set-ids: [21]
+         - edit-set-name: random-edits
+           edit-set-ids: [25]
+         - edit-set-name: very-large
+           edit-set-ids: [28]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.9
@@ -19,39 +43,58 @@ jobs:
         with: { python-version: '3.9' }
       - name: Install cbng-trainer
         run: pip install git+https://github.com/cluebotng/trainer.git@main
-      - name: Download reviewed edits
+      - name: Download reviewed edits (limited)
+        run: cbng-trainer download-edits --output=edits.xml --edit-set ${{ join('--edit-set', matrix.edit-set-ids) }}
+        if: ${{ matrix.edit-set-ids }}
+      - name: Download reviewed edits (full)
         run: cbng-trainer download-edits --output=edits.xml
+        if: ${{ !matrix.edit-set-ids }}
       - name: Build databases
         run: |
-          mkdir -p new
-          cbng-trainer build-database --input=edits.xml --output new/
+          mkdir -p "new/${{ matrix.edit-set-name }}"
+          cbng-trainer build-database --input=edits.xml --output "new/${{ matrix.edit-set-name }}"
       - name: Prepare files
         id: prep
         run: |
-          sudo chown -R runner:docker new
-          sudo chmod 644 new/*
-          cp edits.xml new/ || true
+          sudo chown -R runner:docker "new/${{ matrix.edit-set-name }}/"
+          sudo find new -type f -exec chmod 644 {} \;
+          cp edits.xml "new/${{ matrix.edit-set-name }}/" || true
           echo "::set-output name=date::$(date +'%Y-%m-%d')"
       - name: Compare databases
         run: |
-          cbng-trainer compare-database --target new/ --output new/ || true
-      - name: Crease a release
-        uses: ncipollo/release-action@v1
+          cbng-trainer compare-database --target "new/${{ matrix.edit-set-name }}/" --output "new/${{ matrix.edit-set-name }}/" || true
+      - uses: actions/cache@v2
+        id: trainer-output
         with:
-          token: "${{ secrets.GITHUB_TOKEN }}"
-          artifacts: "new/*"
-          bodyFile: "new/comparator.md"
-          tag: "${{ steps.prep.outputs.date }}"
-      - name: Update README
-        run: |
-          pip install requests
-          ./.github/scripts/update-readme.py
-
-          git config user.email "worker@github"
-          git config user.name "Github Actions"
-
-          git add README.md
-          git commit -m 'Update README'
-          git push origin main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          path: "new/**"
+          key: "trained-set-${{ matrix.edit-set-name }}"
+  release:
+    runs-on: ubuntu-20.04
+    needs: [trainer]
+    steps:
+      - uses: actions/cache@v2
+        id: trainer-output
+        with:
+          path: "new/**"
+          key: "trained-sets"
+          restore-keys: ["trained-set-"]
+      - run: find .
+      # - name: Crease a release
+      #   uses: ncipollo/release-action@v1
+      #   with:
+      #     token: "${{ secrets.GITHUB_TOKEN }}"
+      #     artifacts: "new/**"
+      #     tag: "${{ steps.prep.outputs.date }}"
+      # - name: Update README
+      #   run: |
+      #     pip install requests
+      #     ./.github/scripts/update-readme.py
+      #
+      #     git config user.email "worker@github"
+      #     git config user.name "Github Actions"
+      #
+      #     git add README.md
+      #     git commit -m 'Update README'
+      #     git push origin ${GITHUB_REF##*/}
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
