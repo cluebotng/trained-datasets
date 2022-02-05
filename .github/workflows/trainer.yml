@@ -1,13 +1,5 @@
 name: Run training logic
-on:
-  schedule:
-    - cron: '13 10 * * *'
-  push:
-    branches:
-      - main
-      - ng
-    paths-ignore:
-      - 'README.md'
+on: [push]
 permissions:
   contents: write
 jobs:
