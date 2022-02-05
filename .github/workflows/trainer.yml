@@ -77,7 +77,7 @@ jobs:
         with:
           path: "new/**"
           key: "trained-sets"
-          restore-keys: ["trained-set-"]
+          restore-keys: "trained-set-"
       - run: find .
       # - name: Crease a release
       #   uses: ncipollo/release-action@v1
