@@ -66,7 +66,6 @@ jobs:
           sudo chown -R runner:docker "results/"
           sudo find results -type f -exec chmod 644 {} \;
           cp edits.xml "results/" || true
-          echo "::set-output name=date::$(date +'%Y-%m-%d')"
       - name: Compare databases
         run: |
           cbng-trainer compare-database --target "results/" --output "results/" || true
@@ -79,6 +78,8 @@ jobs:
     runs-on: ubuntu-20.04
     needs: [trainer]
     steps:
+      - name: Setup
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
       - name: Download results
         uses: actions/download-artifact@v2
         with:
