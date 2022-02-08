@@ -46,7 +46,7 @@ jobs:
       - name: Download reviewed edits
         run: |
           [ ! -z "${{ join(matrix.edit-set-ids) }}" ] && export filter="--edit-set ${{ join(matrix.edit-set-ids, '--edit-set') }}"
-          cbng-trainer download-edits --output=edits.xml "$filter"
+          cbng-trainer download-edits --output=edits.xml $filter
       - name: Build databases
         run: |
           mkdir -p "new/${{ matrix.edit-set-name }}"
