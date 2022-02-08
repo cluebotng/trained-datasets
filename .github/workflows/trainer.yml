@@ -89,7 +89,7 @@ jobs:
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
           artifacts: "results/**"
-          tag: "${{ steps.prep.outputs.date }}"
+          tag: "${{ steps.setup.outputs.date }}"
       - name: Update README
         run: |
           pip install requests
