@@ -11,31 +11,40 @@ on:
 permissions:
   contents: write
 jobs:
+  pre-warm:
+    runs-on: ubuntu-20.04
+    steps:
+      run: curl https://cluebotng-review.toolforge.org/api/export/done.json > /dev/null
   trainer:
     runs-on: ubuntu-20.04
+    needs: [pre-warm]
     continue-on-error: true
     strategy:
       matrix:
        include:
-         - edit-set-name: all
-         - edit-set-name: reported
-           edit-set-ids: [1, 2]
-         - edit-set-name: original-c
-           edit-set-ids: [7]
-         - edit-set-name: original-d
-           edit-set-ids: [9]
-         - edit-set-name: original-testing-c
-           edit-set-ids: [13]
-         - edit-set-name: original-testing-d
-           edit-set-ids: [15]
-         - edit-set-name: original-testing-auto
-           edit-set-ids: [19]
-         - edit-set-name: original-testing-triplet
-           edit-set-ids: [21]
-         - edit-set-name: random-edits
-           edit-set-ids: [25]
-         - edit-set-name: very-large
-           edit-set-ids: [28]
+         - edit-set-name: test1
+           edit-set-ids: [1]
+         - edit-set-name: test2
+           edit-set-ids: [2]
+         # - edit-set-name: all
+         # - edit-set-name: reported
+         #   edit-set-ids: [1, 2]
+         # - edit-set-name: original-c
+         #   edit-set-ids: [7]
+         # - edit-set-name: original-d
+         #   edit-set-ids: [9]
+         # - edit-set-name: original-testing-c
+         #   edit-set-ids: [13]
+         # - edit-set-name: original-testing-d
+         #   edit-set-ids: [15]
+         # - edit-set-name: original-testing-auto
+         #   edit-set-ids: [19]
+         # - edit-set-name: original-testing-triplet
+         #   edit-set-ids: [21]
+         # - edit-set-name: random-edits
+         #   edit-set-ids: [25]
+         # - edit-set-name: very-large
+         #   edit-set-ids: [28]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.9
