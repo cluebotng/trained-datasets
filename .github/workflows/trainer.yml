@@ -73,7 +73,7 @@ jobs:
       - name: Upload results
         uses: actions/upload-artifact@v2
         with:
-          name: "trained-set-${{ matrix.edit-set-name }}"
+          name: ${{ matrix.edit-set-name }}
           path: results/**
   release:
     runs-on: ubuntu-20.04
