@@ -64,7 +64,7 @@ jobs:
         id: prep
         run: |
           sudo chown -R runner:docker "results/"
-          sudo find new -type f -exec chmod 644 {} \;
+          sudo find results -type f -exec chmod 644 {} \;
           cp edits.xml "results/" || true
           echo "::set-output name=date::$(date +'%Y-%m-%d')"
       - name: Compare databases
@@ -83,7 +83,6 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           path: results/
-      - run: find .
       - name: Crease a release
         uses: ncipollo/release-action@v1
         with:
