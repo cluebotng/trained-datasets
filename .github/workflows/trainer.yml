@@ -58,23 +58,23 @@ jobs:
           cbng-trainer download-edits --output=edits.xml $filter
       - name: Build databases
         run: |
-          mkdir -p "new/${{ matrix.edit-set-name }}"
-          cbng-trainer build-database --input=edits.xml --output "new/${{ matrix.edit-set-name }}"
+          mkdir -p "results/${{ matrix.edit-set-name }}"
+          cbng-trainer build-database --input=edits.xml --output "results/${{ matrix.edit-set-name }}"
       - name: Prepare files
         id: prep
         run: |
-          sudo chown -R runner:docker "new/${{ matrix.edit-set-name }}/"
+          sudo chown -R runner:docker "results/"
           sudo find new -type f -exec chmod 644 {} \;
-          cp edits.xml "new/${{ matrix.edit-set-name }}/" || true
+          cp edits.xml "results/" || true
           echo "::set-output name=date::$(date +'%Y-%m-%d')"
       - name: Compare databases
         run: |
-          cbng-trainer compare-database --target "new/${{ matrix.edit-set-name }}/" --output "new/${{ matrix.edit-set-name }}/" || true
+          cbng-trainer compare-database --target "results/" --output "results/" || true
       - name: Upload results
         uses: actions/upload-artifact@v2
         with:
           name: "trained-set-${{ matrix.edit-set-name }}"
-          path: new/**
+          path: results/**
   release:
     runs-on: ubuntu-20.04
     needs: [trainer]
@@ -84,22 +84,22 @@ jobs:
         with:
           path: results/
       - run: find .
-      # - name: Crease a release
-      #   uses: ncipollo/release-action@v1
-      #   with:
-      #     token: "${{ secrets.GITHUB_TOKEN }}"
-      #     artifacts: "new/**"
-      #     tag: "${{ steps.prep.outputs.date }}"
-      # - name: Update README
-      #   run: |
-      #     pip install requests
-      #     ./.github/scripts/update-readme.py
-      #
-      #     git config user.email "worker@github"
-      #     git config user.name "Github Actions"
-      #
-      #     git add README.md
-      #     git commit -m 'Update README'
-      #     git push origin ${GITHUB_REF##*/}
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Crease a release
+        uses: ncipollo/release-action@v1
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          artifacts: "results/**"
+          tag: "${{ steps.prep.outputs.date }}"
+      - name: Update README
+        run: |
+          pip install requests
+          ./.github/scripts/update-readme.py
+
+          git config user.email "worker@github"
+          git config user.name "Github Actions"
+
+          git add README.md
+          git commit -m 'Update README'
+          git push origin ${GITHUB_REF##*/}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
