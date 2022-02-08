@@ -61,7 +61,6 @@ jobs:
           mkdir -p "results/${{ matrix.edit-set-name }}"
           cbng-trainer build-database --input=edits.xml --output "results/${{ matrix.edit-set-name }}"
       - name: Prepare files
-        id: prep
         run: |
           sudo chown -R runner:docker "results/"
           sudo find results -type f -exec chmod 644 {} \;
