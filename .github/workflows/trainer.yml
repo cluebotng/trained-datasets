@@ -77,7 +77,6 @@ jobs:
     runs-on: ubuntu-20.04
     needs: [trainer]
     steps:
-      - uses: actions/checkout@v2
       - name: Setup
         id: setup
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
@@ -85,11 +84,25 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           path: results/
+      - name: Prepare files
+        run: |
+          mkdir -p release/
+
+          # We can't use directory structure in releases
+          # And artifacts are limited to 90 days
+          # So let's rename everything to have a prefix.....
+          for file in results/*/*;
+          do
+            training_set=$(echo $file | cut -d/ -f2)
+            file_name=$(basename $(echo $file | cut -d/ -f3))
+            mv "$file" "release/${training_set}-${file_name}"
+          done
+
       - name: Crease a release
         uses: ncipollo/release-action@v1
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
-          artifacts: "results/**"
+          artifacts: "release/*"
           tag: "${{ steps.setup.outputs.date }}"
       - name: Update README
         run: |

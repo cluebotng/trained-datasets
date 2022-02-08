@@ -40,7 +40,7 @@ def build_assests_string(release):
     assets_str = ""
     for asset in sorted(release["assets"], key=lambda a: (a["name"].split("/")[0],
                                                           a["name"])):
-        if asset["name"] in ("comparator.md",):
+        if asset["name"].endswith("-comparator.md"):
             continue
         if len(assets_str) > 0:
             assets_str += " "
@@ -52,7 +52,7 @@ def build_comparator_string(release):
     return "\n".join([
         f'* [{asset["name"].split("/")[0]}]({asset["browser_download_url"]})'
         for asset in release["assets"]
-        if asset["name"].endswith("comparator.md")
+        if asset["name"].endswith("-comparator.md")
     ])
 
 
