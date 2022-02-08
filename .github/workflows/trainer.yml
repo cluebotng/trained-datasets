@@ -14,7 +14,7 @@ jobs:
   pre-warm:
     runs-on: ubuntu-20.04
     steps:
-      - run: curl https://cluebotng-review.toolforge.org/api/export/done.json > /dev/null
+      - run: curl https://cluebotng-review.toolforge.org/api/export/trainer.json > /dev/null
   trainer:
     runs-on: ubuntu-20.04
     needs: [pre-warm]
