@@ -70,11 +70,11 @@ jobs:
       - name: Compare databases
         run: |
           cbng-trainer compare-database --target "new/${{ matrix.edit-set-name }}/" --output "new/${{ matrix.edit-set-name }}/" || true
-      - uses: actions/cache@v2
-        id: trainer-output
+      - name: Upload results
+        uses: actions/upload-artifact@v2
         with:
-          path: "new/**"
-          key: "trained-set-${{ matrix.edit-set-name }}"
+          name: "trained-set-${{ matrix.edit-set-name }}"
+          path: new/**
   release:
     runs-on: ubuntu-20.04
     needs: [trainer]
