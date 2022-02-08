@@ -43,9 +43,11 @@ jobs:
       - name: Install cbng-trainer
         run: pip install git+https://github.com/cluebotng/trainer.git@main
       - name: Download reviewed edits (limited)
-        run: |
-          echo "${{ matrix.edit-set-ids }}"
-          cbng-trainer download-edits --output=edits.xml --edit-set ${{ join('--edit-set', matrix.edit-set-ids) }}
+        run: cbng-trainer download-edits --output=edits.xml --edit-set ${{ join('--edit-set', matrix.edit-set-ids) }}
+        if: ${{ matrix.edit-set-ids }}
+      - name: Download reviewed edits (full)
+        run: cbng-trainer download-edits --output=edits.xml
+        if: ${{ !matrix.edit-set-ids }}
       - name: Build databases
         run: |
           mkdir -p "new/${{ matrix.edit-set-name }}"
