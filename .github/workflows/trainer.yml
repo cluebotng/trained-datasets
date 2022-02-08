@@ -79,12 +79,10 @@ jobs:
     runs-on: ubuntu-20.04
     needs: [trainer]
     steps:
-      - uses: actions/cache@v2
-        id: trainer-output
+      - name: Download results
+        uses: actions/download-artifact@v2
         with:
-          path: "new/**"
-          key: "trained-sets"
-          restore-keys: "trained-set-"
+          path: results/
       - run: find .
       # - name: Crease a release
       #   uses: ncipollo/release-action@v1
