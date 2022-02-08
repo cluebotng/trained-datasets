@@ -79,6 +79,7 @@ jobs:
     needs: [trainer]
     steps:
       - name: Setup
+        id: setup
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
       - name: Download results
         uses: actions/download-artifact@v2
