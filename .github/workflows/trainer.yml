@@ -17,7 +17,6 @@ jobs:
       matrix:
        include:
          - edit-set-name: all
-           edit-set-ids: []
          - edit-set-name: reported
            edit-set-ids: [1, 2]
          - edit-set-name: original-c
@@ -48,7 +47,7 @@ jobs:
         if: ${{ matrix.edit-set-ids }}
       - name: Download reviewed edits (full)
         run: cbng-trainer download-edits --output=edits.xml
-        if: ${{ !matrix.edit-set-ids }}
+        if: !${{ matrix.edit-set-ids }}
       - name: Build databases
         run: |
           mkdir -p "new/${{ matrix.edit-set-name }}"
