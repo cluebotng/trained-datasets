@@ -12,6 +12,7 @@ permissions:
   contents: write
 jobs:
   trainer:
+    name: Training Set ${{ edit-set-name }}
     runs-on: ubuntu-20.04
     strategy:
       matrix:
