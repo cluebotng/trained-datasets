@@ -108,11 +108,14 @@ jobs:
           # Create the release notes
           for file in results/*/comparator.md;
           do
-            training_set=$(echo $file | cut -d/ -f2)
+            if [ -f "$file" ];
+            then
+              training_set=$(echo $file | cut -d/ -f2)
 
-            echo "# ${training_set}" >> release.md
-            cat "$file" >> release.md
-            echo "" >> release.md
+              echo "# ${training_set}" >> release.md
+              cat "$file" >> release.md
+              echo "" >> release.md
+            fi
           done
 
       - name: Crease a release
