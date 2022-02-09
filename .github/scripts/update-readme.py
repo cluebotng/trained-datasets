@@ -38,8 +38,9 @@ def get_releases(org, repo):
 
 def build_assests_string(release):
     assets_str = ""
-    for asset in sorted(release["assets"], key=lambda a: a["name"]):
-        if asset["name"] in ("comparator.md",):
+    for asset in sorted(release["assets"], key=lambda a: (a["name"].split("/")[0],
+                                                          a["name"])):
+        if asset["name"].endswith("-comparator.md"):
             continue
         if len(assets_str) > 0:
             assets_str += " "
@@ -48,10 +49,11 @@ def build_assests_string(release):
 
 
 def build_comparator_string(release):
-    for asset in release["assets"]:
-        if asset["name"] == "comparator.md":
-            return f'[Results]({asset["browser_download_url"]})'
-    return ""
+    return "\n".join([
+        f'* [{asset["name"].split("/")[0]}]({asset["browser_download_url"]})'
+        for asset in release["assets"]
+        if asset["name"].endswith("-comparator.md")
+    ])
 
 
 def main():
