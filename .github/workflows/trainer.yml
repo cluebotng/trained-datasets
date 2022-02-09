@@ -102,7 +102,17 @@ jobs:
           do
             training_set=$(echo $file | cut -d/ -f2)
             file_name=$(basename $(echo $file | cut -d/ -f3))
-            mv "$file" "release/${training_set}-${file_name}"
+            cp "$file" "release/${training_set}-${file_name}"
+          done
+
+          # Create the release notes
+          for file in results/*/comparator.md;
+          do
+            training_set=$(echo $file | cut -d/ -f2)
+
+            echo "# ${training_set}" >> release.md
+            cat "$file" >> release.md
+            echo "" >> release.md
           done
 
       - name: Crease a release
@@ -110,6 +120,7 @@ jobs:
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
           artifacts: "release/*"
+          bodyFile: "release.md"
           tag: "${{ steps.setup.outputs.date }}"
       - name: Update README
         run: |
