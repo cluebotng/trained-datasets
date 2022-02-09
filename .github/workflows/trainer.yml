@@ -106,6 +106,7 @@ jobs:
           done
 
           # Create the release notes
+          touch release.md
           for file in results/*/comparator.md;
           do
             if [ -f "$file" ];
