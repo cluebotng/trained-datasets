@@ -58,8 +58,8 @@ jobs:
           cbng-trainer download-edits --output=edits.xml $filter
       - name: Build databases
         run: |
-          mkdir -p "results/${{ matrix.edit-set-name }}"
-          cbng-trainer build-database --input=edits.xml --output "results/${{ matrix.edit-set-name }}"
+          mkdir -p "results/"
+          cbng-trainer build-database --input=edits.xml --output "results/"
       - name: Prepare files
         run: |
           sudo chown -R runner:docker "results/"
@@ -68,11 +68,14 @@ jobs:
       - name: Compare databases
         run: |
           cbng-trainer compare-database --target "results/" --output "results/" || true
+
+          # Cleanup before we upload
+          rm -f results/Dockerfile
       - name: Upload results
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.edit-set-name }}
-          path: results/**
+          path: results/*
   release:
     runs-on: ubuntu-20.04
     needs: [trainer]
