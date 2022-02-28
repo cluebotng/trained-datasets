@@ -1,46 +1,19 @@
-name: Run training logic
+name: Dataset trainer
+
 on:
-  schedule:
-    - cron: '13 10 * * *'
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - 'README.md'
-permissions:
-  contents: write
+  workflow_call:
+    inputs:
+      edit-set-name:
+        required: true
+        type: string
+      edit-set-ids:
+        required: true
+        type: string
+
 jobs:
-  pre-warm:
-    runs-on: ubuntu-20.04
-    steps:
-      - run: curl https://cluebotng-review.toolforge.org/api/export/trainer.json > /dev/null
   trainer:
     runs-on: ubuntu-20.04
-    needs: [pre-warm]
     continue-on-error: true
-    strategy:
-      fail-fast: false
-      matrix:
-       include:
-         - edit-set-name: all
-         - edit-set-name: reported
-           edit-set-ids: [1, 2]
-         - edit-set-name: original-c
-           edit-set-ids: [7]
-         - edit-set-name: original-d
-           edit-set-ids: [9]
-         - edit-set-name: original-testing-c
-           edit-set-ids: [13]
-         - edit-set-name: original-testing-d
-           edit-set-ids: [15]
-         - edit-set-name: original-testing-auto
-           edit-set-ids: [19]
-         - edit-set-name: original-testing-triplet
-           edit-set-ids: [21]
-         - edit-set-name: random-edits
-           edit-set-ids: [25]
-         - edit-set-name: very-large
-           edit-set-ids: [28]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.9
@@ -50,7 +23,7 @@ jobs:
         run: pip install git+https://github.com/cluebotng/trainer.git@main
       - name: Download reviewed edits
         run: |
-          [ ! -z "${{ join(matrix.edit-set-ids) }}" ] && export filter="--edit-set ${{ join(matrix.edit-set-ids, ' --edit-set ') }}"
+          [ ! -z "${{ join(fromJSON(inputs.edit-set-ids)) }}" ] && export filter="--edit-set ${{ join(fromJSON(inputs.edit-set-ids), ' --edit-set ') }}"
           cbng-trainer download-edits --output=edits.xml $filter
       - name: Build databases
         run: |
@@ -70,68 +43,5 @@ jobs:
       - name: Upload results
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.edit-set-name }}
+          name: ${{ inputs.edit-set-name }}
           path: results/*
-  release:
-    runs-on: ubuntu-20.04
-    needs: [trainer]
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v2
-        with: { python-version: '3.9' }
-      - name: Setup
-        id: setup
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-      - name: Download results
-        uses: actions/download-artifact@v2
-        with:
-          path: results/
-      - name: Prepare files
-        run: |
-          mkdir -p release/
-
-          # We can't use directory structure in releases
-          # And artifacts are limited to 90 days
-          # So let's rename everything to have a prefix.....
-          for file in results/*/*;
-          do
-            training_set=$(echo $file | cut -d/ -f2)
-            file_name=$(basename $(echo $file | cut -d/ -f3))
-            cp "$file" "release/${training_set}-${file_name}"
-          done
-
-          # Create the release notes
-          touch release.md
-          for file in results/*/comparator.md;
-          do
-            if [ -f "$file" ];
-            then
-              training_set=$(echo $file | cut -d/ -f2)
-
-              echo "# ${training_set}" >> release.md
-              cat "$file" >> release.md
-              echo "" >> release.md
-            fi
-          done
-
-      - name: Crease a release
-        uses: ncipollo/release-action@v1
-        with:
-          token: "${{ secrets.GITHUB_TOKEN }}"
-          artifacts: "release/*"
-          bodyFile: "release.md"
-          tag: "${{ steps.setup.outputs.date }}"
-      - name: Update README
-        run: |
-          pip install requests
-          ./.github/scripts/update-readme.py
-
-          git config user.email "worker@github"
-          git config user.name "Github Actions"
-
-          git add README.md
-          git commit -m 'Update README'
-          git push origin ${GITHUB_REF##*/}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

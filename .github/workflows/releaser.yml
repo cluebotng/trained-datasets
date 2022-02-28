@@ -1,0 +1,68 @@
+name: Trained dataset releaser
+
+on:
+  workflow_call:
+
+jobs:
+  release:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with: { python-version: '3.9' }
+      - name: Setup
+        id: setup
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      - name: Download results
+        uses: actions/download-artifact@v2
+        with:
+          path: results/
+      - name: Prepare files
+        run: |
+          mkdir -p release/
+
+          # We can't use directory structure in releases
+          # And artifacts are limited to 90 days
+          # So let's rename everything to have a prefix.....
+          for file in results/*/*;
+          do
+            training_set=$(echo $file | cut -d/ -f2)
+            file_name=$(basename $(echo $file | cut -d/ -f3))
+            cp "$file" "release/${training_set}-${file_name}"
+          done
+
+          # Create the release notes
+          touch release.md
+          for file in results/*/comparator.md;
+          do
+            if [ -f "$file" ];
+            then
+              training_set=$(echo $file | cut -d/ -f2)
+
+              echo "# ${training_set}" >> release.md
+              cat "$file" >> release.md
+              echo "" >> release.md
+            fi
+          done
+
+      - name: Crease a release
+        uses: ncipollo/release-action@v1
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          artifacts: "release/*"
+          bodyFile: "release.md"
+          tag: "${{ steps.setup.outputs.date }}"
+      - name: Update README
+        run: |
+          pip install requests
+          ./.github/scripts/update-readme.py
+
+          git config user.email "worker@github"
+          git config user.name "Github Actions"
+
+          git add README.md
+          git commit -m 'Update README'
+          git push origin ${GITHUB_REF##*/}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
