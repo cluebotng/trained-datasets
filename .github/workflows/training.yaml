@@ -10,82 +10,86 @@ on:
 permissions:
   contents: write
 jobs:
-  # Generic pre warming of the API endpoint
-  pre-warm:
-    runs-on: ubuntu-20.04
-    steps:
-      - run: curl https://cluebotng-review.toolforge.org/api/export/trainer.json > /dev/null
-
   # Data sets to build
   all:
     uses: ./.github/workflows/trainer.yml
-    needs: [pre-warm]
     with:
       edit-set-name: all
-      edit-set-ids: '[]'
+      train-set-ids: '[]'
+      bayes-set-ids: '[]'
+      trial-set-ids: '[]'
 
   reported:
     uses: ./.github/workflows/trainer.yml
-    needs: [pre-warm]
     with:
       edit-set-name: reported
-      edit-set-ids: '[1, 2]'
+      train-set-ids: '[1, 2]'
+      bayes-set-ids: '[]'
+      trial-set-ids: '[]'
 
   original-c:
     uses: ./.github/workflows/trainer.yml
-    needs: [pre-warm]
     with:
       edit-set-name: original-c
-      edit-set-ids: '[7]'
+      train-set-ids: '[7]'
+      bayes-set-ids: '[]'
+      trial-set-ids: '[8]'
 
   original-d:
     uses: ./.github/workflows/trainer.yml
-    needs: [pre-warm]
     with:
       edit-set-name: original-d
-      edit-set-ids: '[9]'
+      train-set-ids: '[9]'
+      trial-set-ids: '[10]'
+      bayes-set-ids: '[11]'
 
   original-testing-c:
     uses: ./.github/workflows/trainer.yml
-    needs: [pre-warm]
     with:
       edit-set-name: original-testing-c
-      edit-set-ids: '[13]'
+      train-set-ids: '[13]'
+      trial-set-ids: '[14]'
+      bayes-set-ids: '[]'
 
   original-testing-d:
     uses: ./.github/workflows/trainer.yml
-    needs: [pre-warm]
     with:
       edit-set-name: original-testing-d
-      edit-set-ids: '[15]'
+      train-set-ids: '[15]'
+      trial-set-ids: '[16]'
+      bayes-set-ids: '[17]'
 
   original-testing-auto:
     uses: ./.github/workflows/trainer.yml
-    needs: [pre-warm]
     with:
       edit-set-name: original-testing-auto
-      edit-set-ids: '[19]'
+      train-set-ids: '[19]'
+      trial-set-ids: '[20]'
+      bayes-set-ids: '[]'
 
   original-testing-triplet:
     uses: ./.github/workflows/trainer.yml
-    needs: [pre-warm]
     with:
       edit-set-name: original-testing-triplet
-      edit-set-ids: '[21]'
+      train-set-ids: '[21]'
+      trial-set-ids: '[22]'
+      bayes-set-ids: '[23]'
 
   random-edits:
     uses: ./.github/workflows/trainer.yml
-    needs: [pre-warm]
     with:
       edit-set-name: random-edits
-      edit-set-ids: '[25]'
+      train-set-ids: '[25]'
+      trial-set-ids: '[26]'
+      bayes-set-ids: '[]'
 
   very-large:
     uses: ./.github/workflows/trainer.yml
-    needs: [pre-warm]
     with:
       edit-set-name: very-large
-      edit-set-ids: '[28]'
+      train-set-ids: '[28]'
+      trial-set-ids: '[29]'
+      bayes-set-ids: '[30]'
 
   # Reporting of completed datasets
   release:

@@ -6,7 +6,13 @@ on:
       edit-set-name:
         required: true
         type: string
-      edit-set-ids:
+      train-set-ids:
+        required: true
+        type: string
+      trial-set-ids:
+        required: true
+        type: string
+      bayes-set-ids:
         required: true
         type: string
 
@@ -16,30 +22,73 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v2
+
       - name: Set up Python 3.9
         uses: actions/setup-python@v2
         with: { python-version: '3.9' }
+
       - name: Install cbng-trainer
         run: pip install git+https://github.com/cluebotng/trainer.git@main
+
       - name: Download reviewed edits
         run: |
-          [ ! -z "${{ join(fromJSON(inputs.edit-set-ids)) }}" ] && export filter="--edit-set ${{ join(fromJSON(inputs.edit-set-ids), ' --edit-set ') }}"
-          cbng-trainer download-edits --output=edits.xml $filter
+          filter=""
+          if [ ! -z "${{ join(fromJSON(inputs.train-set-ids)) }}" ];
+          then
+            export filter="${filter} --edit-set ${{ join(fromJSON(inputs.train-set-ids), ' --edit-set ') }}"
+          fi
+          cbng-trainer download-edits --output=train-edits.xml $filter
+
+          # If we have specific edits for the bayes set, then download them. Otherwise, use the same list as train.
+          # Note: We duplicate it here, so we can treat the artifact the same in all other steps
+          if [ ! -z "${{ join(fromJSON(inputs.bayes-set-ids)) }}" ];
+          then
+            cbng-trainer download-edits --output=bayes-edits.xml --edit-set ${{ join(fromJSON(inputs.bayes-set-ids), ' --edit-set ') }}
+          else
+            cp -v train-edits.xml bayes-edits.xml
+          fi
+
       - name: Build databases
         run: |
           mkdir -p "results/"
-          cbng-trainer build-database --input=edits.xml --output "results/"
+          cbng-trainer build-database --ann-input=train-edits.xml --bayes-input=bayes-edits.xml --output "results/"
+
       - name: Prepare files
         run: |
           sudo chown -R runner:docker "results/"
           sudo find results -type f -exec chmod 644 {} \;
-          cp edits.xml "results/" || true
-      - name: Compare databases
-        run: |
-          cbng-trainer compare-database --target "results/" --output "results/" || true
 
-          # Cleanup before we upload
+          cp train-edits.xml "results/"
+          cp bayes-edits.xml "results/"
+
+      - name: Run trial
+        run: |
+          # If we have specific edits for the trail set, then download them.
+          # Otherwise, download a random set of edits to use for comparison.
+          if [ ! -z "${{ join(fromJSON(inputs.trial-set-ids)) }}" ];
+          then
+            cbng-trainer download-edits --output=trial-edits.xml --edit-set ${{ join(fromJSON(inputs.trial-set-ids), ' --edit-set ') }}
+          else
+            cbng-trainer download-edits --output=trial-edits.xml --random-edits
+          fi
+
+          cp trial-edits.xml "results/"
+
+          # Run the actual trial logic
+          cbng-trainer trial-database --input trial-edits.xml --output "results/"
+
+      - name: Cleanup artifacts before upload
+        run: |
           rm -f results/Dockerfile
+
+          # Re-structure the trial output (can't use a directory structure in releases)
+          for file in results/trialreport/*;
+          do
+            file_name=$(basename $(echo $file | cut -d/ -f3))
+            cp "$file" "results/trialreport-${file_name}"
+          done
+          rm -rf results/trialreport/
+
       - name: Upload results
         uses: actions/upload-artifact@v2
         with:
