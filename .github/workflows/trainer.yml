@@ -77,7 +77,7 @@ jobs:
           # Run the actual trial logic
           cbng-trainer trial-database --input trial-edits.xml --output "results/"
 
-      - name: Cleanup artifacts before upload
+      - name: Cleanup artifacts before release
         run: |
           rm -f results/Dockerfile
 
@@ -89,8 +89,11 @@ jobs:
           done
           rm -rf results/trialreport/
 
-      - name: Upload results
-        uses: actions/upload-artifact@v2
+          echo "::set-output name=date::$(date +'%Y-%m-%d')"
+
+      - name: Crease a release
+        uses: ncipollo/release-action@v1
         with:
-          name: ${{ inputs.edit-set-name }}
-          path: results/*
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          artifacts: "results/*"
+          tag: "${{ inputs.edit-set-name }}/${{ steps.setup.outputs.date }}"

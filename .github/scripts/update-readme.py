@@ -6,8 +6,15 @@ from datetime import datetime
 README_TPL = """# CBNG Trained Datasets
 
 This repo contains datasets generated from the latest reviewed edits.
+"""
 
-## Datasets
+NEW_DATASET_TPL = """## Datasets
+
+| Data Set | Date | Assets |
+| -------- | ---- | ------ |
+"""
+
+OLD_DATASET_TPL = """## V1 Datasets
 
 | Name | Assets | Comparator Results |
 | ---- | ------ | ------------------ |
@@ -54,19 +61,26 @@ def build_comparator_string(release):
 
 
 def main():
-    readme_str = README_TPL
+    new_datasets = NEW_DATASET_TPL
+    old_datasets = OLD_DATASET_TPL
 
     for release in sorted(
         get_releases("cluebotng", "trained-datasets"),
         key=lambda r: datetime.strptime(r["published_at"], "%Y-%m-%dT%H:%M:%SZ"),
         reverse=True,
     ):
-        readme_str += f'| [{release["tag_name"]}]({release["html_url"]}) '
-        readme_str += f"| {build_assests_string(release)} "
-        readme_str += f"| {build_comparator_string(release)} |\n"
+        # New style of dataset
+        if "/" in release["tag_name"]:
+            new_datasets += f'| [{release["tag_name"].split("/")[0]}]({release["html_url"]}) '
+            new_datasets += f'| [{release["tag_name"].split("/")[1]}]({release["html_url"]}) '
+            new_datasets += f"| {build_assests_string(release)} "
+        else:
+            old_datasets += f'| [{release["tag_name"]}]({release["html_url"]}) '
+            old_datasets += f"| {build_assests_string(release)} "
+            old_datasets += f"| {build_comparator_string(release)} |\n"
 
     with open("README.md", "w") as fh:
-        fh.write(readme_str)
+        fh.write(f"{README_TPL}\n{new_datasets}\n{old_datasets}")
 
 
 if __name__ == "__main__":

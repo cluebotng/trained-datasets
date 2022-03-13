@@ -92,8 +92,26 @@ jobs:
       bayes-set-ids: '[30]'
 
   # Reporting of completed datasets
-  release:
-    uses: ./.github/workflows/releaser.yml
+  update_readme:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with: { python-version: '3.9' }
+      - name: Update README
+        run: |
+          pip install requests
+          ./.github/scripts/update-readme.py
+
+          git config user.email "worker@github"
+          git config user.name "Github Actions"
+
+          git add README.md
+          git commit -m 'Update README'
+          git push origin ${GITHUB_REF##*/}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     needs:
       - all
       - reported
