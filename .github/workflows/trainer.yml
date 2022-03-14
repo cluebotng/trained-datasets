@@ -78,6 +78,7 @@ jobs:
           cbng-trainer trial-database --input trial-edits.xml --output "results/"
 
       - name: Cleanup artifacts before release
+        id: clean
         run: |
           rm -f results/Dockerfile
 
@@ -96,4 +97,4 @@ jobs:
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
           artifacts: "results/*"
-          tag: "${{ inputs.edit-set-name }}-${{ steps.setup.outputs.date }}"
+          tag: "${{ inputs.edit-set-name }}-${{ steps.clean.outputs.date }}"
