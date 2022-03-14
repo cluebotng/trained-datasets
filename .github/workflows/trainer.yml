@@ -97,4 +97,4 @@ jobs:
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
           artifacts: "results/*"
-          tag: "${{ inputs.edit-set-name }}-${{ steps.clean.outputs.date }}"
+          tag: "${{ inputs.edit-set-name }}/${{ steps.clean.outputs.date }}"

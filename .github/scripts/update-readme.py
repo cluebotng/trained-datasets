@@ -66,18 +66,13 @@ def main():
 
     for release in sorted(
         get_releases("cluebotng", "trained-datasets"),
-        key=lambda r: (datetime.strptime(r["published_at"], "%Y-%m-%dT%H:%M:%SZ"),
-                       ('-'.join(r["tag_name"].split('-')[0:-3])
-                        if len(r["tag_name"].split('-')) > 3 else
-                        None)),
+        key=lambda r: datetime.strptime(r["published_at"], "%Y-%m-%dT%H:%M:%SZ"),
         reverse=True,
     ):
         # New style of dataset
-        if len(release["tag_name"].split('-')) > 3:
-            dataset = '-'.join(release["tag_name"].split('-')[0:-3])
-            date = '-'.join(release["tag_name"].split('-')[-3:])
-            new_datasets += f'| [{dataset}]({release["html_url"]}) '
-            new_datasets += f'| [{date}]({release["html_url"]}) '
+        if "/" in release["tag_name"]:
+            new_datasets += f'| [{release["tag_name"].split("/")[0]}]({release["html_url"]}) '
+            new_datasets += f'| [{release["tag_name"].split("/")[1]}]({release["html_url"]}) '
             new_datasets += f"| {build_assests_string(release)} "
         else:
             old_datasets += f'| [{release["tag_name"]}]({release["html_url"]}) '
