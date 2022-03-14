@@ -66,7 +66,10 @@ def main():
 
     for release in sorted(
         get_releases("cluebotng", "trained-datasets"),
-        key=lambda r: datetime.strptime(r["published_at"], "%Y-%m-%dT%H:%M:%SZ"),
+        key=lambda r: (datetime.strptime(r["published_at"], "%Y-%m-%dT%H:%M:%SZ"),
+                       (r["tag_name"].split("/")[0]
+                        if "/" in r["tag_name"] else
+                        None)),
         reverse=True,
     ):
         # New style of dataset
