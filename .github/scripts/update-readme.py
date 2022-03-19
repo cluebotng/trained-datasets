@@ -76,7 +76,7 @@ def main():
         if "/" in release["tag_name"]:
             new_datasets += f'| [{release["tag_name"].split("/")[0]}]({release["html_url"]}) '
             new_datasets += f'| [{release["tag_name"].split("/")[1]}]({release["html_url"]}) '
-            new_datasets += f"| {build_assests_string(release)} "
+            new_datasets += f"| {build_assests_string(release)} |\n"
         else:
             old_datasets += f'| [{release["tag_name"]}]({release["html_url"]}) '
             old_datasets += f"| {build_assests_string(release)} "
